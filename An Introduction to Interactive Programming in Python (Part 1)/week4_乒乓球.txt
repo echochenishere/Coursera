@@ -1,0 +1,137 @@
+import simplegui
+import random
+
+WIDTH = 600
+HEIGHT = 400       
+BALL_RADIUS = 20
+PAD_WIDTH = 8
+PAD_HEIGHT = 80
+HALF_PAD_WIDTH = PAD_WIDTH / 2
+HALF_PAD_HEIGHT = PAD_HEIGHT / 2
+LEFT = False
+RIGHT = True
+
+ball_pos = [WIDTH/2, HEIGHT/2]
+ball_vel = [ 0, 0]
+paddle1_pos = [HALF_PAD_WIDTH       , (HEIGHT - PAD_HEIGHT) /2 ]
+paddle2_pos = [WIDTH - HALF_PAD_WIDTH, (HEIGHT - PAD_HEIGHT) /2 ]
+paddle1_vel = 0
+paddle2_vel = 0
+score1 = 0
+score2 = 0
+
+#使球回到中心，並隨機選擇向右上或左下
+def spawn_ball(direction):
+    global ball_pos, ball_vel
+    ball_pos = [WIDTH/2, HEIGHT/2]
+    if direction == True:
+        ball_vel = [ 1,-1]
+    else:
+        ball_vel = [-1,-1]
+
+#開啟新局，分數、球拍、球，回到原始位置
+def new_game():
+    global paddle1_pos, paddle2_pos, paddle1_vel, paddle2_vel, ball_pos, ball_vel
+    global score1, score2
+    paddle1_pos = [HALF_PAD_WIDTH        , (HEIGHT - PAD_HEIGHT) /2 ]
+    paddle2_pos = [WIDTH - HALF_PAD_WIDTH, (HEIGHT - PAD_HEIGHT) /2 ]
+    score1 = 0
+    score2 = 0
+    ball_vel = [0, 0]
+    direction = random.randrange(0, 2)
+    spawn_ball(direction)
+    
+def draw(canvas):
+    global score1, score2, paddle1_pos, paddle2_pos, ball_pos, ball_vel, paddle1_vel, paddle2_vel        
+    
+    #畫球桌
+    canvas.draw_line([WIDTH / 2, 0],[WIDTH / 2, HEIGHT], 1, "White")  #中線
+    canvas.draw_line([PAD_WIDTH, 0],[PAD_WIDTH, HEIGHT], 1, "White")  #左線
+    canvas.draw_line([WIDTH - PAD_WIDTH, 0],[WIDTH - PAD_WIDTH, HEIGHT], 1, "White") #右線
+    
+    #球速會越來越快
+    ball_vel[0] = ball_vel[0]*1.0012
+    ball_vel[1] = ball_vel[1]*1.0009
+    #球的位置
+    ball_pos[0] = ball_pos[0] + ball_vel[0]
+    ball_pos[1] = ball_pos[1] + ball_vel[1]
+    canvas.draw_circle(ball_pos, BALL_RADIUS, 1, "White", "White")
+    
+    #球拍的位置，球拍不能超過畫布
+    if paddle1_pos[1] < 0 :
+        paddle1_pos[1] = 0
+    elif paddle1_pos[1]+PAD_HEIGHT > HEIGHT:
+        paddle1_pos[1] = (HEIGHT - PAD_HEIGHT)
+    else:
+        paddle1_pos[1] = paddle1_pos[1] + paddle1_vel
+    if paddle2_pos[1] < 0 :
+        paddle2_pos[1] = 0
+    elif paddle2_pos[1]+PAD_HEIGHT > HEIGHT:
+        paddle2_pos[1] = (HEIGHT - PAD_HEIGHT)
+    else:
+        paddle2_pos[1] = paddle2_pos[1] + paddle2_vel
+    canvas.draw_line(paddle1_pos, [HALF_PAD_WIDTH        , paddle1_pos[1]+PAD_HEIGHT], PAD_WIDTH, "White")
+    canvas.draw_line(paddle2_pos, [WIDTH - HALF_PAD_WIDTH, paddle2_pos[1]+PAD_HEIGHT], PAD_WIDTH, "White") 
+   
+    #球的位置，球撞擊到上下邊緣會反彈
+    if ball_pos[1] <= BALL_RADIUS:
+        ball_vel[1] = - ball_vel[1]
+    if HEIGHT - ball_pos[1] <= BALL_RADIUS:
+        ball_vel[1] = - ball_vel[1]
+    #球撞擊到球拍會反彈
+    if paddle1_pos[1] <= ball_pos[1] <= paddle1_pos[1]+ PAD_HEIGHT and ball_pos[0] < HALF_PAD_WIDTH + BALL_RADIUS:
+        ball_vel[0] = - ball_vel[0]
+    if paddle2_pos[1] <= ball_pos[1] <= paddle2_pos[1]+ PAD_HEIGHT and ball_pos[0] > WIDTH-(PAD_WIDTH + BALL_RADIUS):
+        ball_vel[0] = - ball_vel[0]          
+    
+    #球撞擊到左右邊緣會回到原點，且會使對方得分
+    if  (paddle1_pos[1] >= ball_pos[1] or ball_pos[1] >= paddle1_pos[1]+ PAD_HEIGHT) and ball_pos[0] < BALL_RADIUS + PAD_WIDTH:
+        spawn_ball(RIGHT)
+        score2 = score2 +1        
+    if  (paddle2_pos[1] >= ball_pos[1] or ball_pos[1] >= paddle2_pos[1]+ PAD_HEIGHT) and ball_pos[0] > WIDTH - (BALL_RADIUS + PAD_WIDTH):
+        spawn_ball(LEFT)
+        score1 = score1 +1       
+    canvas.draw_text(str(score1), (WIDTH / 4   , 50), 50, "White")
+    canvas.draw_text(str(score2), (3* WIDTH / 4, 50), 50, "White")
+
+#設定玩家鍵盤
+def keydown(key):
+    global paddle1_vel, paddle2_vel
+    if key == simplegui.KEY_MAP["w"]:
+        paddle1_vel = -2
+    if key == simplegui.KEY_MAP["s"]:
+        paddle1_vel = 2   
+    if key == simplegui.KEY_MAP["up"]:
+        paddle2_vel = -2
+    if key == simplegui.KEY_MAP["down"]:
+        paddle2_vel = 2       
+def keyup(key):
+    global paddle1_vel, paddle2_vel
+    global paddle1_vel, paddle2_vel
+    if key == simplegui.KEY_MAP["w"]:
+        paddle1_vel = 0
+    if key == simplegui.KEY_MAP["s"]:
+        paddle1_vel = 0  
+    if key == simplegui.KEY_MAP["up"]:
+        paddle2_vel = 0
+    if key == simplegui.KEY_MAP["down"]:
+        paddle2_vel = 0  
+
+# create frame
+frame = simplegui.create_frame("Pong", WIDTH, HEIGHT)
+frame.set_draw_handler(draw)
+frame.set_keydown_handler(keydown)
+frame.set_keyup_handler(keyup)
+frame.add_label("Right side player", 200)
+frame.add_label("Up   = up", 200)
+frame.add_label("Down = down", 200)
+frame.add_label(" ", 200)
+frame.add_label("Left side player", 200)
+frame.add_label("Up   = w", 200)
+frame.add_label("Down = s", 200)
+frame.add_label(" ", 200)
+frame.add_button('Restart', new_game)
+
+# start frame
+new_game()
+frame.start()

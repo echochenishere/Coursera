@@ -1,0 +1,59 @@
+import simplegui
+
+time_start = True
+t = 0
+game_round = 0
+win_round = 0
+
+def Start():
+    global t,time_start
+    if time_start :
+        t = t+1
+        timer.start()
+    else:
+        timer.stop()
+        time_start = True
+        
+def Stop():
+    global t,time_start,game_round,win_round
+    if timer.is_running() :
+        game_round = game_round +1
+    if timer.is_running() and ((t % 600) % 60) % 10 == 0:
+        win_round = win_round + 1
+    time_start = False  
+    
+def Reset():
+    global t,game_round,win_round
+    t = 0
+    game_round = 0
+    win_round = 0
+    timer.stop()
+        
+def format(t_format):
+    global t,game_round,win_round
+    t = t_format
+    a = t // (10*60)
+    b = (t - a*(10*60) ) // (10*10)
+    c = (t - a*(10*60) - b*(10*10)) // 10
+    d = (t - a*(10*60) - b*(10*10) - c*10)
+    return str(a)+":"+str(b)+str(c)+"."+str(d)
+
+def ms_game():
+    global game_round,win_round
+    return str(win_round)+"/"+str(game_round)
+
+def draw(Stopwatch):
+    Stopwatch.draw_text(format(t), (40,115), 50, "white")
+    Stopwatch.draw_text(ms_game(), (130,40), 30, "green")
+
+frame = simplegui.create_frame('Stopwatch', 200, 200)
+timer = simplegui.create_timer(100, Start)
+frame.set_draw_handler(draw)
+
+frame.add_label('Stop the watch on a whole second (1.0, 2.0, 3.0, etc.)')
+frame.add_button('Start', Start, 100)
+frame.add_button('Stop', Stop, 100)
+frame.add_button('Reset', Reset, 100)
+
+frame.start()
+

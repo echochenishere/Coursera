@@ -1,0 +1,245 @@
+import simplegui
+import random
+
+WIDTH = 600
+HEIGHT = 400       
+BALL_RADIUS = 20
+PAD_WIDTH = 8
+PAD_HEIGHT = 80
+HALF_PAD_WIDTH = PAD_WIDTH / 2
+HALF_PAD_HEIGHT = PAD_HEIGHT / 2
+LEFT = False
+RIGHT = True
+
+ball_pos = [WIDTH/2, HEIGHT/2]
+ball_vel = [ 0, 0]
+paddle1_pos = [HALF_PAD_WIDTH        , (HEIGHT - PAD_HEIGHT) /2 ]
+paddle2_pos = [WIDTH - HALF_PAD_WIDTH, (HEIGHT - PAD_HEIGHT) /2 ]
+paddle1_vel = 0
+paddle2_vel = 0
+score1 = 0
+score2 = 0
+win_scores = 5
+win_scores_not = 5
+
+time_start = True
+
+#開啟新局，分數、球拍、球，回到原始位置
+def new_game():
+    global paddle1_pos, paddle2_pos, paddle1_vel, paddle2_vel, ball_pos, ball_vel
+    global score1, score2
+    paddle1_pos = [HALF_PAD_WIDTH        , (HEIGHT - PAD_HEIGHT) /2 ]
+    paddle2_pos = [WIDTH - HALF_PAD_WIDTH, (HEIGHT - PAD_HEIGHT) /2 ]
+    score1 = 0
+    score2 = 0
+    ball_vel = [0, 0]
+    direction = random.randrange(0, 2)
+    spawn_ball(direction)
+    
+    
+#暫停，原地再開始
+def Start():
+    global ball_pos, ball_vel, score1, score2
+    global time_start
+    if time_start :
+        #球的位置
+        ball_pos[0] = ball_pos[0] + ball_vel[0]
+        ball_pos[1] = ball_pos[1] + ball_vel[1]
+        timer.start()
+    else:
+        timer.stop()
+        time_start = True
+def Stop():
+    global time_start
+    if timer.is_running():
+        time_start = False
+
+#設定贏家分數
+def input_win_scores(input_win_scores):
+    global win_scores,win_scores_not
+    try:
+        int(input_win_scores) <= 0
+    except:
+        win_scores_not = input_win_scores
+    else:
+        if int(input_win_scores) <= 0:
+            win_scores_not = input_win_scores
+        else:
+            win_scores = int(input_win_scores)
+            win_scores_not = int(input_win_scores)
+            new_game()
+            Start()
+                   
+#贏家分數警語            
+def warning():
+    global win_scores_not
+    try:
+        int(win_scores_not) <= 0
+    except:
+        return "Please enter an positive integer in winner scores."
+    else:
+        if int(win_scores_not) <= 0:
+            return "Please enter an positive integer in winner scores."
+        else:
+            return ""          
+        
+#使球回到中心，並隨機選擇向右上或左下
+def spawn_ball(direction):
+    global ball_pos, ball_vel
+    ball_pos = [WIDTH/2, HEIGHT/2]
+    if direction == True:
+        ball_vel[0] =  random.randrange(100, 200)/100.0
+        ball_vel[1] =  random.randrange(100, 200)/100.0
+    else:
+        ball_vel[0] = -random.randrange(100, 200)/100.0
+        ball_vel[1] =  random.randrange(100, 200)/100.0        
+
+#球速
+def speed_up():
+    global ball_vel
+    ball_vel[0] = ball_vel[0]*1.25
+    ball_vel[1] = ball_vel[1]*1.15     
+        
+def draw(canvas):
+    global score1, score2, paddle1_pos, paddle2_pos, ball_pos, ball_vel, paddle1_vel, paddle2_vel
+    global win_scores, win_scores_not, time_start
+    
+    #開始公布語
+    if ball_vel == [ 0, 0] and time_start :
+        canvas.draw_text("Press 'n' to start a new game.", (WIDTH/5, HEIGHT/3), 30, "White")
+        canvas.draw_text("Press 'space' to stop the game.", (WIDTH/5, HEIGHT/2.5), 30, "White")
+    #暫停公布語
+    if timer.is_running() != True and ball_pos != [0, 0] and ball_pos != [WIDTH/2, HEIGHT/2]  :
+        canvas.draw_text("Stop", (WIDTH/2.2, HEIGHT/2), 30, "White")
+        canvas.draw_text("Press 'space' to restart the game.", (WIDTH/3.2, HEIGHT/1.8), 20, "White") 
+    #贏家分數和贏家分數警語
+    canvas.draw_text(str(win_scores), (WIDTH / 3    , 50), 20, "White")
+    canvas.draw_text(str(win_scores), (WIDTH / 1.2  , 50), 20, "White")   
+    canvas.draw_text("/"            , (WIDTH / 3.18 , 50), 20, "White")
+    canvas.draw_text("/"            , (WIDTH / 1.23 , 50), 20, "White")
+    canvas.draw_text(warning()      , (WIDTH / 5    , HEIGHT/1.5), 20, "White") 
+    
+    #畫球桌
+    canvas.draw_line([WIDTH / 2, 0],[WIDTH / 2, HEIGHT], 1, "White")  #中線
+    
+    #球的位置
+    canvas.draw_circle(ball_pos, BALL_RADIUS, 1, "White", "White")
+       
+    #球拍的位置，球拍不能超過畫布
+    if paddle1_pos[1] < 0 :
+        paddle1_pos[1] = 0
+    elif paddle1_pos[1]+PAD_HEIGHT > HEIGHT:
+        paddle1_pos[1] = (HEIGHT - PAD_HEIGHT)
+    else:
+        paddle1_pos[1] = paddle1_pos[1] + paddle1_vel
+    if paddle2_pos[1] < 0 :
+        paddle2_pos[1] = 0
+    elif paddle2_pos[1]+PAD_HEIGHT > HEIGHT:
+        paddle2_pos[1] = (HEIGHT - PAD_HEIGHT)
+    else:
+        paddle2_pos[1] = paddle2_pos[1] + paddle2_vel
+    canvas.draw_line(paddle1_pos, [HALF_PAD_WIDTH        , paddle1_pos[1]+PAD_HEIGHT], PAD_WIDTH, "White")
+    canvas.draw_line(paddle2_pos, [WIDTH - HALF_PAD_WIDTH, paddle2_pos[1]+PAD_HEIGHT], PAD_WIDTH, "White") 
+   
+    #球的位置，球撞擊到上下邊緣會反彈
+    if ball_pos[1] <= BALL_RADIUS:
+        ball_vel[1] = - ball_vel[1]
+        speed_up()
+    if HEIGHT - ball_pos[1] <= BALL_RADIUS:
+        ball_vel[1] = - ball_vel[1]
+        speed_up()
+    #球撞擊到球拍會反彈
+    if paddle1_pos[1] <= ball_pos[1] <= paddle1_pos[1]+ PAD_HEIGHT and ball_pos[0] < HALF_PAD_WIDTH + BALL_RADIUS:
+        ball_vel[0] = - ball_vel[0]
+        speed_up()
+    if paddle2_pos[1] <= ball_pos[1] <= paddle2_pos[1]+ PAD_HEIGHT and ball_pos[0] > WIDTH-(PAD_WIDTH + BALL_RADIUS):
+        ball_vel[0] = - ball_vel[0]
+        speed_up()
+    #球撞擊到球拍邊緣會反彈
+    ((BALL_RADIUS**2)/2)**0.5
+    ditance_up  = ((ball_pos[0] - (paddle1_pos[0] - HALF_PAD_WIDTH))**2 + (ball_pos[1] - paddle1_pos[1])**2)**0.5
+    ditance_low = ((ball_pos[0] - (paddle1_pos[0] - HALF_PAD_WIDTH))**2 + (ball_pos[1] - paddle1_pos[1]-PAD_HEIGHT)**2)**0.5
+    if ditance_up <= BALL_RADIUS:
+        ball_vel[0] = - ball_vel[0]
+        speed_up()
+    if ditance_low <= BALL_RADIUS:
+        ball_vel[0] = - ball_vel[0]
+        speed_up()
+    #球撞擊到左右畫布邊緣會回到原點，且會使對方得分
+    if ball_pos[0] - BALL_RADIUS <= 0:
+        spawn_ball(RIGHT)
+        score2 = score2 +1        
+    if ball_pos[0] + BALL_RADIUS >= WIDTH:
+        spawn_ball(LEFT)
+        score1 = score1 +1      
+    canvas.draw_text(str(score1), (WIDTH / 4   , 50), 50, "White")
+    canvas.draw_text(str(score2), (3* WIDTH / 4, 50), 50, "White")
+    
+    #結束公布語
+    if score1 >= win_scores :
+        canvas.draw_text("Left side player win!", (WIDTH/3.5, HEIGHT/3), 30, "White")
+        canvas.draw_text("Press 'n' to start a new game.", (WIDTH/5, HEIGHT/2.5), 30, "White")
+        ball_pos = [WIDTH/2, HEIGHT/2]
+        Stop()
+    elif score2 >= win_scores:
+        canvas.draw_text("Right side player win!" , (WIDTH/3.5, HEIGHT/3), 30, "White")
+        canvas.draw_text("Press 'n' to start a new game.", (WIDTH/5, HEIGHT/2.5), 30, "White")
+        ball_pos = [WIDTH/2, HEIGHT/2]
+        Stop()
+        
+#設定玩家鍵盤
+def keydown(key):
+    global paddle1_vel, paddle2_vel, time_start
+    if key == simplegui.KEY_MAP["space"]:
+        Stop()
+    if key == simplegui.KEY_MAP["space"] and time_start == True:
+        Start()
+    if key == simplegui.KEY_MAP["n"]:
+        Start()
+        new_game()
+    if key == simplegui.KEY_MAP["w"]:
+        paddle1_vel = -3
+    if key == simplegui.KEY_MAP["s"]:
+        paddle1_vel = 3  
+    if key == simplegui.KEY_MAP["up"]:
+        paddle2_vel = -3
+    if key == simplegui.KEY_MAP["down"]:
+        paddle2_vel = 3      
+def keyup(key):
+    global paddle1_vel, paddle2_vel
+    if key == simplegui.KEY_MAP["w"]:
+        paddle1_vel = 0
+    if key == simplegui.KEY_MAP["s"]:
+        paddle1_vel = 0  
+    if key == simplegui.KEY_MAP["up"]:
+        paddle2_vel = 0
+    if key == simplegui.KEY_MAP["down"]:
+        paddle2_vel = 0 
+        
+
+frame = simplegui.create_frame("Pong", WIDTH, HEIGHT)
+frame.set_draw_handler(draw)
+timer = simplegui.create_timer(15, Start)
+
+frame.set_keydown_handler(keydown)
+frame.set_keyup_handler(keyup)
+
+frame.add_label("Right side player", 200)
+frame.add_label("Up   = up", 200)
+frame.add_label("Down = down", 200)
+frame.add_label(" ", 200)
+frame.add_label("Left side player", 200)
+frame.add_label("Up   = w", 200)
+frame.add_label("Down = s", 200)
+frame.add_label(" ", 200)
+
+frame.add_label("new game     = n", 200)
+frame.add_label("stop/start = space", 200)
+frame.add_label(" ", 200)
+
+frame.add_label("Set an winner scores.", 200)
+frame.add_label("Press 'Enter' to input.", 200)
+frame.add_input("(Original setting is 5 points.)", input_win_scores, 100)
+
+frame.start()
+

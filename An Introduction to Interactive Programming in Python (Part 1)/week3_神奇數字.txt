@@ -1,0 +1,27 @@
+def number(n):
+    if n % 2 == 1 :
+        return  n*3 +1
+    else:
+        return  n / 2
+
+a=[0]*30
+a[0]=23
+a[1]=number(a[0])
+for i in range(16):
+    if a[i] != 1:
+        a[i+1]=number(a[i])
+    else:
+        print a[:i]
+print max(a)
+
+
+
+b=[0]*100
+b[0]=217
+b[1]=number(b[0])
+for i in range(30):
+    if b[i] != 1:
+        b[i+1]=number(b[i])
+    else:
+        print b[:i]
+print max(b)

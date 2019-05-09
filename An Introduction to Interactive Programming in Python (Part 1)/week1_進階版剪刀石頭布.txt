@@ -1,0 +1,29 @@
+def name_to_number(name)
+    name_list=['rock','Spock','paper','lizard','scissors']
+    return name_list.index(name)
+
+def number_to_name(number)
+    name_list=['rock','Spock','paper','lizard','scissors']
+    return name_list[number]
+
+import random
+def rpsls(player_choice) 
+    print Player chooses +player_choice
+    player_number=name_to_number(player_choice)
+    comp_number=random.randrange(0,4,1)
+    comp_choice=number_to_name(comp_number)
+    print Computer chooses +comp_choice
+        
+    points=player_number-comp_number
+    if points in [1,2,-3,-4]
+        print Player wins!n
+    elif points in [-1,-2,3,4]
+        print Computer wins!n
+    else 
+        print Player and computer tie!n
+rpsls(rock)
+rpsls(Spock)
+rpsls(paper)
+rpsls(lizard)
+rpsls(scissors)
+

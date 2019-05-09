@@ -1,0 +1,162 @@
+import simplegui
+import random
+import math
+
+lower = 0
+upper = 100
+guess = 0
+
+lower_not = 0
+upper_not = 100
+guess_not = 0
+secret_number = -1
+remaining_number = 0
+guess_lower = lower
+guess_upper = upper
+
+#設定猜數字的下界
+def lower_bound_input(lower_bound_input):
+    global lower, lower_not
+    try:
+        int(lower_bound_input) - 0
+    except:
+        lower_not = lower_bound_input
+    else:
+        if int(lower_bound_input) < 0 :
+            lower_not = lower_bound_input
+        else:
+            lower     = int(lower_bound_input)
+            lower_not = int(lower_bound_input)
+            star_the_game()
+#設定猜數字的上界
+def upper_bound_input(upper_bound_input):
+    global upper, upper_not
+    try:
+        int(upper_bound_input) - 0
+    except:
+        upper_not = upper_bound_input
+    else:
+        if int(upper_bound_input) < 0 :
+            upper_not = upper_bound_input
+        elif int(upper_bound_input) <= int(lower):
+            upper_not = upper_bound_input
+        else:
+            upper     = int(upper_bound_input)
+            upper_not = int(upper_bound_input)
+            star_the_game()
+
+#玩家輸入猜測數字            
+def guess_input(guess_input):
+    global guess, guess_not , remaining_number 
+    try:
+        int(guess_input) - 0
+    except:
+        guess_not = guess_input
+    else:
+        if int(guess_input) < 0:
+            guess_not = guess_input
+        elif int(guess_input) > int(upper) or int(guess_input) < int(lower):
+            guess_not = guess_input
+        else:
+            guess     = int(guess_input) 
+            guess_not = int(guess_input) 
+            remaining_number = remaining_number -1
+            guess_path()
+            
+#警告語：排除輸入錯誤值，包含非數字，非正整數，而且上界一定要大於下界，排出猜測的數字超出上下界
+def warning():
+    global lower_not, upper_not, guess_not
+    try:
+        int(lower_not) - 0 or int(upper_not) - 0 or int(guess_not) - 0 
+    except:
+        return "Your lower and upper bound and guess number must be an positive integer."
+    try:
+        int(lower_not) < 0 or int(upper_not) < 0 or int(guess_not) < 0
+    except ValueError:
+        return "Your lower and upper bound and guess number must be an positive integer."
+    else:
+        if int(lower_not) < 0 or int(upper_not) < 0 or int(guess_not) < 0:
+            return "Your lower and upper bound and guess number must be an positive integer."
+        elif int(upper_not) <= int(lower_not):
+            return "Your upper bound must greater than lower bound."
+        elif (int(guess_not) > int(upper_not) and int(guess_not) !=0) or (int(guess_not) < int(lower_not) and int(guess_not) !=0):
+            return "Out of guesses."
+        else:
+            return "" 
+
+#遊戲開始前，要按下star，其中依照二分法，計算了猜測次數的限制，並設定了要猜的數字
+def star_the_game():
+    global lower,upper,secret_number,remaining_number
+    global guess_upper, guess_lower
+    try:
+        int(lower) - 0 or int(upper) - 0 or int(guess) - 0
+    except:
+        return warning()
+    else:
+        guess = 0
+        guess_lower = lower
+        guess_upper = upper
+        remaining_number = int(math.ceil(math.log(float(upper)-float(lower)+1,10)/math.log(2,10)))
+        secret_number = random.randrange(float(lower),float(upper))        
+
+#提醒玩家猜的區間
+def guess_path():
+    global guess_upper, guess_lower, guess, upper, lower, secret_number
+    if guess < secret_number:
+        guess_lower = guess
+    elif guess > secret_number:
+        guess_upper  = guess
+           
+def draw(canvas):
+    global guess, lower, upper, guess_lower, guess_upper
+    global secret_number,remaining_number
+    global guess_upper, guess_lower
+    #螢幕上的字幕
+    canvas.draw_text("Your can change lower bound and upper bound. Press 'Start' to start.",[5,30],16,"white")
+    canvas.draw_text("Your lower bound is "  ,[5,60],20,"white")
+    canvas.draw_text("Your upper bound is "  ,[250,60],20,"white")
+    canvas.draw_text(str(lower),[190,60],20,"white")
+    canvas.draw_text(str(upper),[430,60],20,"white")
+    
+    if guess != 0:
+        canvas.draw_text("lowest number is "  ,[5,90],20,"white")
+        canvas.draw_text("highest number is "  ,[250,90],20,"white")
+        canvas.draw_text(str(guess_lower),[190,90],20,"white")
+        canvas.draw_text(str(guess_upper),[430,90],20,"white")    
+    
+    canvas.draw_text("Guess number was " ,[5,120],20,"white")
+    #canvas.draw_text(guess_hint(guess)   ,[200,120],20,"white")
+    #遊戲主體
+    #猜測次數超過前面算出的限制次數，則失敗，遊戲立即重來  
+    if secret_number < 0 or guess == 0:
+        canvas.draw_text("",[200,120],20,"white")
+    elif remaining_number == 0 and int(guess) != secret_number:
+        canvas.draw_text("Ran out.It was "+str(secret_number)+".Press 'Start' to start new game.",[200,120],15,"white")
+    else:
+        if int(guess) == secret_number:
+            canvas.draw_text("Correct!Press 'Start' to start new game.",[200,120],10,"white")
+        elif int(guess) < secret_number:
+            canvas.draw_text("Higher!",[200,120],20,"white")
+        else:
+            canvas.draw_text("Lower!",[200,120],20,"white")
+    
+    canvas.draw_text("Remaining number was " ,[5,150],20,"white")
+    if remaining_number != 0:
+        canvas.draw_text(str(remaining_number)   ,[220,150],20,"white") 
+        
+    if guess != 0 :
+        canvas.draw_text(str(guess) ,[170,120],20,"white")  
+        
+    canvas.draw_text(warning(),[5,190],16,"white") 
+
+frame = simplegui.create_frame("Guess the Number!", 500, 200)
+frame.set_draw_handler(draw)
+
+frame.add_input("lower bound", lower_bound_input, 100)
+frame.add_input("upper bound", upper_bound_input, 100)
+frame.add_button("Start", star_the_game, 100)
+frame.add_label('  ')
+frame.add_input("Enter a guess", guess_input, 100)
+
+frame.start()
+star_the_game()

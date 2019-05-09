@@ -1,0 +1,116 @@
+name_list=['rock','Spock','paper','lizard','scissors']
+def name_to_number(name):
+    global name_list
+    return name_list.index(name)
+
+def number_to_name(number):
+    global name_list
+    return name_list[number]
+
+#按鈕
+player_choice = ""
+comp_choice = ""
+points = 10
+import random
+def player_rock():
+    global player_choice,comp_choice
+    player_choice = "rock"
+    comp_number=random.randrange(0,4,1)
+    comp_choice=number_to_name(comp_number)
+    return player_choice
+def player_paper():
+    global player_choice,comp_choice
+    player_choice = "paper"
+    comp_number=random.randrange(0,4,1)
+    comp_choice=number_to_name(comp_number)
+    return player_choice
+def player_scissors():
+    global player_choice,comp_choice
+    player_choice = "scissors"
+    comp_number=random.randrange(0,4,1)
+    comp_choice=number_to_name(comp_number)
+    return player_choice
+def player_lizard():
+    global player_choice,comp_choice
+    player_choice = "lizard"
+    comp_number=random.randrange(0,4,1)
+    comp_choice=number_to_name(comp_number)
+    return player_choice
+def player_Spock():
+    global player_choice,comp_choice
+    player_choice = "Spock"
+    comp_number=random.randrange(0,4,1)
+    comp_choice=number_to_name(comp_number)
+    return player_choice
+
+def clean_table():
+    global player_choice,comp_choice,points
+    player_choice = ""
+    comp_choice = ""
+    points = 10
+
+#文字
+def player_text():
+    global player_choice
+    return player_choice
+
+def comp_text():
+    global comp_choice
+    return comp_choice
+
+def star_the_game():
+    global player_choice,comp_choice,points
+    if player_choice == "" or comp_choice == "" or points == 10:
+        return "Please press the button."
+    else:
+        return ""
+
+#遊戲主體
+def rpsls_text(): 
+    global player_choice,comp_choice,points
+    if player_choice != "" and comp_choice != "":
+        player_number=name_to_number(player_choice)
+        comp_number=name_to_number(comp_choice)
+        points=player_number-comp_number
+    else:
+        return ""
+    if points in [1,2,-3,-4]:
+        return "Player wins!"
+    elif points in [-1,-2,3,4]:
+        return "Computer wins!"
+    else: 
+        return "Player and computer tie!"
+
+def rpsls_sign(): 
+    global points
+    if points == 10:
+        return ""
+    else:
+        if points in [1,2,-3,-4]:
+            return ">"
+        elif points in [-1,-2,3,4]:
+            return "<"
+        else: 
+            return "="
+
+
+#螢幕上的字幕
+def draw_handler(canvas):
+    canvas.draw_text('Player chooses',   (20, 40) , 20, 'red')
+    canvas.draw_text('Computer chooses', (320, 40), 20, 'yellow')
+    canvas.draw_text(player_text(), (30, 80) , 50, 'red')
+    canvas.draw_text(comp_text()  , (320, 80), 50, 'yellow')
+    canvas.draw_text(rpsls_sign()      , (210, 100), 100, 'white')
+    canvas.draw_text(rpsls_text()      , (180, 140), 20 , 'white')
+    canvas.draw_text(star_the_game()   , (100, 100), 30 , 'white')
+    
+import simplegui
+frame = simplegui.create_frame('Rock-Paper-Scissors-Lizard-Spock', 500, 180)
+frame.set_draw_handler(draw_handler)
+frame.add_button('Rock', player_rock, 80)
+frame.add_button('Paper', player_paper, 80)
+frame.add_button('Scissors', player_scissors, 80)
+frame.add_button('Lizard', player_lizard, 80)
+frame.add_button('Spock', player_Spock, 80)
+frame.add_button('Clean canvas', clean_table, 80)
+frame.start()
