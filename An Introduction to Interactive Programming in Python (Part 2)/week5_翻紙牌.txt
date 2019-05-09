@@ -1,0 +1,66 @@
+import simplegui
+import random
+
+width = 800
+height = 100
+turns = 0
+pairs = 8
+
+def new_game():
+    global number_list, card, turns, pairs
+    turns = 0
+    label.set_text("Turns = "+str(turns))
+    pairs = 8
+    label_p.set_text("Remaining "+str(pairs)+" pairs.")
+    card = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    number_list = [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7]
+    random.shuffle(number_list)
+
+def mouseclick(pos):
+    global number_list, card, turns, pairs
+    card_width = width/len(number_list)/2
+    same = [100, 100]
+    if pairs == 0 :
+        new_game()
+    for j in range(len(card)):
+        if card[j] == 3:
+            card[j] = 0
+    for i in range(len(number_list)):
+        if (i+0.05)*card_width*2 <= pos[0] <= (i+1)*card_width*2 and card[i] == 0:
+            card[i] = 1          
+            same = [i for i in range(len(card)) if card[i] == 1]
+            if len(same) == 2:
+                if number_list[same[0]] == number_list[same[1]]:
+                    card[same[0]] = 2
+                    card[same[1]] = 2
+                    same = []
+                    turns = turns + 1
+                    pairs = pairs - 1
+                    label.set_text("Turns = "+str(turns))
+                    label_p.set_text("Remaining "+str(pairs)+" pairs.")
+                else:
+                    card[same[0]] = 3
+                    card[same[1]] = 3
+                    turns = turns + 1
+                    same = []
+                    label.set_text("Turns = "+str(turns))
+        else:
+            same = []
+
+def draw(canvas):
+    card_width = width/len(number_list)/2
+    for i in range(len(number_list)):
+        canvas.draw_text(str(number_list[i]), (card_width/2+i*card_width*2, 2*height/3), 50, 'white')
+        if card[i] == 0:
+            canvas.draw_polygon([[(i+1)*card_width*2  ,      0], [(i+1)*card_width*2  , height], 
+                                [(i+0.05)*card_width*2, height], [(i+0.05)*card_width*2,      0]],
+                                1, "green","green")
+            
+frame = simplegui.create_frame("Memory", width, height)
+frame.add_button("Reset", new_game)
+label = frame.add_label("Turns = 0")
+label_p = frame.add_label("Remaining "+str(pairs)+" pairs.")
+frame.set_mouseclick_handler(mouseclick)
+frame.set_draw_handler(draw)
+new_game()
+frame.start()
